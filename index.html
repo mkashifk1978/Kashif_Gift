@@ -98,7 +98,7 @@
 
                 const rawFill = ((pressure - minPressure) / pressureRange) * 100;
                 const clampedFill = Math.max(0, Math.min(100, rawFill));
-                const fill = clampedFill.toFixed(1);
+                const fill = volume;
 
                 document.getElementById('pressure').textContent = pressure;
                 document.getElementById('height').textContent = height;
