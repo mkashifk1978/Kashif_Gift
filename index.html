@@ -81,8 +81,8 @@
     <script>
         const channelID = 3010841;
         const readAPI = "I4AJDEJIXTPAUIFK";
-        const minPressure = 70;
-        const maxPressure = 470;
+        const minPressure = 35;
+        const maxPressure = 100;
         const pressureRange = maxPressure - minPressure;
 
         async function fetchData() {
@@ -92,9 +92,9 @@
                 const data = await response.json();
                 const feed = data.feeds[0];
 
-                const pressure = parseFloat(feed.field1).toFixed(2);
-                const height = (parseFloat(feed.field2) - 17).toFixed(2);
-                const volume = parseFloat(feed.field3).toFixed(2);
+                const pressure = parseFloat(feed.field6).toFixed(2);
+                const height = (parseFloat(feed.field7) - 17).toFixed(2);
+                const volume = parseFloat(feed.field8).toFixed(2);
 
                 const rawFill = ((pressure - minPressure) / pressureRange) * 100;
                 const clampedFill = Math.max(0, Math.min(100, rawFill));
