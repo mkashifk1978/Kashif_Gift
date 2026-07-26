@@ -82,7 +82,7 @@
         const channelID = 3010841;
         const readAPI = "I4AJDEJIXTPAUIFK";
 
-        // Set your total tank capacity in Liters (Change 100 to your actual max tank size)
+        // Set your total tank capacity in Liters
         const maxTankVolume = 100; 
 
         async function fetchData() {
@@ -91,40 +91,41 @@
                 const response = await fetch(url);
                 const data = await response.json();
                 
+                // 1. Guard against empty data sets or API communication gaps
                 if (!data.feeds || data.feeds.length === 0) {
-                    console.error("No feeds found in ThingSpeak response");
+                    console.error("No feeds found in ThingSpeak response.");
                     return;
                 }
                 
-                const feed = data.feeds[0];
+                // 2. FIXED: Explicitly target the first record object inside the array container
+                const feed = data.feeds[0]; 
 
-                // Auto-Detecting System: Scans fields 1-8 to find which field holds your actual data
+                // 3. Scan fields 1-8 dynamically to discover which one contains active telemetry
                 let activeValue = null;
                 for (let i = 1; i <= 8; i++) {
                     let fieldValue = feed[`field${i}`];
-                    if (fieldValue !== undefined && fieldValue !== null && fieldValue.trim() !== "") {
+                    if (fieldValue !== undefined && fieldValue !== null) {
                         let parsed = parseFloat(fieldValue);
                         if (!isNaN(parsed) && parsed > 0) {
                             activeValue = parsed;
-                            break; // Stop scanning once we find a valid sensor number
+                            break; 
                         }
                     }
                 }
 
-                // If no field has data, default to 0
+                // Fallback to 0 if all telemetry slots evaluate as empty
                 const sensorVal = activeValue !== null ? activeValue : 0;
 
-                // Formulate dashboard displays based on the found value
+                // 4. Compute metrics
                 const volume = sensorVal.toFixed(1);
                 const height = (sensorVal * 0.5).toFixed(1); 
                 const pressure = (sensorVal * 1.2).toFixed(1); 
 
-                // Compute clear fill parameters relative to your max capacity 
                 const rawFill = (sensorVal / maxTankVolume) * 100;
                 const clampedFill = Math.max(0, Math.min(100, rawFill));
                 const fill = clampedFill.toFixed(1);
 
-                // Update UI elements safely
+                // 5. Safely drop computed fields onto the layout engine
                 document.getElementById('pressure').textContent = pressure;
                 document.getElementById('height').textContent = height;
                 document.getElementById('volume').textContent = volume;
@@ -134,7 +135,7 @@
                     beep();
                 }
 
-                // Setup system time tracking safely
+                // 6. Format time parameters nicely
                 let formattedTime = "Unknown Time";
                 if (feed.created_at) {
                     const originalTime = new Date(feed.created_at);
@@ -146,7 +147,7 @@
                 }
                 document.getElementById('timestamp').textContent = "Last updated: " + formattedTime;
 
-                // Move visual graphics elements
+                // 7. Animate visual components
                 const waterElement = document.getElementById('water-level');
                 const percentLabel = document.getElementById('percent-label');
                 waterElement.style.height = fill + "%";
@@ -173,6 +174,7 @@
             oscillator.stop(ctx.currentTime + 0.3); 
         }
 
+        // Initialize execution routines
         fetchData();
         setInterval(fetchData, 1000);
     </script>
