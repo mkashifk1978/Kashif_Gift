@@ -79,37 +79,44 @@
     <div class="percentage" id="percent-label">--%</div>
 
     <script>
-      const channelID = 3010841;
-const readAPI = "I4AJDEJIXTPAUIFK";
+        const channelID = 3010841;
+        const readAPI = "I4AJDEJIXTPAUIFK";
 
-// CHANGE THIS: Set your total tank capacity in Liters (e.g., 100 Liters, 500 Liters, etc.)
-const maxTankVolume = 100; 
+        // Set your total tank capacity in Liters (Change 100 to your actual max tank size)
+        const maxTankVolume = 100; 
 
-async function fetchData() {
-    try {
-        const url = `https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${readAPI}&results=1`;
-        const response = await fetch(url);
-        const data = await response.json();
-        const feed = data.feeds[0];
+        async function fetchData() {
+            try {
+                const url = `https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${readAPI}&results=1`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Secure check to make sure feeds data exists
+                if (!data.feeds || data.feeds.length === 0) {
+                    console.error("No feeds found in ThingSpeak response");
+                    return;
+                }
+                
+                const feed = data.feeds[0];
 
-        // Safely parse volume from field6 (fallback to 0 if empty)
-        const rawVolume = feed.field6 ? parseFloat(feed.field6) : 0;
-        const volumeVal = isNaN(rawVolume) ? 0 : rawVolume;
+                // Safely parse volume from field6 (fallback to 0 if empty)
+                const rawVolume = feed.field6 ? parseFloat(feed.field6) : 0;
+                const volumeVal = isNaN(rawVolume) ? 0 : rawVolume;
 
-        // Calculate height and fill percentage based on Volume capacity
-        const volume = volumeVal.toFixed(1);
-        const height = (volumeVal * 0.5).toFixed(1); // Adjust multiplier if you know height ratio
-        const pressure = (volumeVal * 1.2).toFixed(1); // Adjust multiplier if you need a pressure estimate
+                // Calculate height and fill percentage based on Volume capacity
+                const volume = volumeVal.toFixed(1);
+                const height = (volumeVal * 0.5).toFixed(1); // Adjust multiplier if you know height ratio
+                const pressure = (volumeVal * 1.2).toFixed(1); // Adjust multiplier if you need a pressure estimate
 
-        // Percentage based on current volume vs max tank volume
-        const rawFill = (volumeVal / maxTankVolume) * 100;
-        const clampedFill = Math.max(0, Math.min(100, rawFill));
-        const fill = clampedFill.toFixed(1);
+                // Percentage based on current volume vs max tank volume
+                const rawFill = (volumeVal / maxTankVolume) * 100;
+                const clampedFill = Math.max(0, Math.min(100, rawFill));
+                const fill = clampedFill.toFixed(1);
 
-        document.getElementById('pressure').textContent = pressure;
-        document.getElementById('height').textContent = height;
-        document.getElementById('volume').textContent = volume;
-        document.getElementById('fill').textContent = fill + " %";
+                document.getElementById('pressure').textContent = pressure;
+                document.getElementById('height').textContent = height;
+                document.getElementById('volume').textContent = volume;
+                document.getElementById('fill').textContent = fill;
 
                 // Beep if fill is 95% or more
                 if (clampedFill >= 95) {
@@ -134,8 +141,8 @@ async function fetchData() {
 
                 const waterElement = document.getElementById('water-level');
                 const percentLabel = document.getElementById('percent-label');
-                waterElement.style.height = clampedFill + "%";
-                percentLabel.textContent = clampedFill.toFixed(1) + "%";
+                waterElement.style.height = fill + "%";
+                percentLabel.textContent = fill + "%";
 
             } catch (err) {
                 console.error("Failed to fetch ThingSpeak data:", err);
@@ -167,4 +174,3 @@ async function fetchData() {
 
 </body>
 </html>
-
